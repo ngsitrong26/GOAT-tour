@@ -1,11 +1,77 @@
 import json
-
+import os
+import requests
 import pandas as pd
 
 import core.constants as cst
 from core.models.utility_models import DpoDatasetType
 from core.models.utility_models import GrpoDatasetType
 
+from urllib.parse import urlparse
+
+
+def download_s3_file(file_url: str, save_path: str = None, tmp_dir: str = "/tmp", download: bool = True) -> str:
+    """Download a file from an S3 URL and save it locally, or just return the expected path.
+
+    Args:
+        file_url (str): The URL of the file to download.
+        save_path (str, optional): The path where the file should be saved. If a directory is provided,
+            the file will be saved with its original name in that directory. If a file path is provided,
+            the file will be saved at that exact location. Defaults to None.
+        tmp_dir (str, optional): The temporary directory to use when save_path is not provided.
+            Defaults to "/tmp".
+        download (bool, optional): Whether to actually download the file. If False, only returns
+            the expected file path. Defaults to True.
+
+    Returns:
+        str: The local file path where the file was saved (or would be saved).
+
+    Raises:
+        Exception: If the download fails with a non-200 status code (only when download=True).
+
+    Example:
+        >>> # Actually download
+        >>> file_path = download_s3_file("https://example.com/file.txt", save_path="/data")
+        >>> print(file_path)
+        /data/file.txt
+        
+        >>> # Just get expected path
+        >>> expected_path = download_s3_file("https://example.com/file.txt", save_path="/data", download=False)
+        >>> print(expected_path)
+        /data/file.txt
+    """    
+    parsed_url = urlparse(file_url)
+    file_name = os.path.basename(parsed_url.path.split('?')[0])  # Remove query parameters
+    
+    if save_path:
+        if os.path.isdir(save_path) or save_path.endswith('/'):
+            local_file_path = os.path.join(save_path, file_name)
+        else:
+            local_file_path = save_path
+    else:
+        local_file_path = os.path.join(tmp_dir, file_name)
+
+    # If download=False, just return the expected path
+    if not download:
+        return local_file_path
+
+    # Check if file exists and we shouldn't overwrite
+    if os.path.exists(local_file_path):
+        return local_file_path
+
+    # Actually download the file
+    response = requests.get(file_url, stream=True)
+    if response.status_code == 200:
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+        
+        with open(local_file_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+    else:
+        raise Exception(f"Failed to download file: {response.status_code}")
+
+    return local_file_path
 
 def _dpo_format_prompt(row, format_str):
     result = format_str

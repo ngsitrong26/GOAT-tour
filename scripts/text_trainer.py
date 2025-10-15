@@ -215,6 +215,7 @@ def main():
         sys.exit(f"Error creating dataset type object: {e}")
 
     dataset_path = train_paths.get_text_dataset_path(args.task_id)
+    
     submission_dir = train_paths.get_checkpoints_output_path(
         args.task_id, args.expected_repo_name
     )
