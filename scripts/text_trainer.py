@@ -268,13 +268,14 @@ def main():
         "min_steps": args.min_steps,
         "is_openai": is_openai,
         "reg_ratio": args.reg_ratio,
-        "find_lk_lr": False,
+        "find_lk_lr": True,
     }
 
     if args.task_type == TaskType.INSTRUCTTEXTTASK.value:
         train_info = get_instruct_training_json(train_info)
+        python_path = sys.executable
         tokenize_cmd = (
-            f"/workspace/axo_py/bin/python tokenize_instruct.py {request_path}"
+            f"{python_path} tokenize_instruct.py {request_path}"
         )
         train_cmd = train_info["run_cmd"]
 

@@ -122,6 +122,7 @@ async def download_base_model(repo_id: str, save_root: str) -> str:
 
 async def download_axolotl_base_model(repo_id: str, save_dir: str) -> str:
     model_dir = os.path.join(save_dir, repo_id.replace("/", "--"))
+    print(f"Downloading axolotl base model {repo_id} to {model_dir}")
     if os.path.exists(model_dir):
         print(f"Model {repo_id} already exists at {model_dir}. Skipping download.")
         return model_dir

@@ -231,3 +231,4 @@ scripts/ru*.sh
 run_docker.sh
 run_test.py
 test.py
+.tmux.conf

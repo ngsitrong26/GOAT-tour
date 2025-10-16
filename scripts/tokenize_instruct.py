@@ -118,11 +118,9 @@ def _load_evaluation_dataset(
     )
 
     original_length = len(eval_dataset)
-    eval_dataset = [
-        sample
-        for sample in eval_dataset
-        if any(label != -100 for label in sample["labels"])
-    ]
+    eval_dataset = eval_dataset.filter(
+        lambda sample: any(label != -100 for label in sample["labels"])
+    )
     filtered_length = len(eval_dataset)
 
     print(

@@ -4,11 +4,11 @@ import argparse
 
 import training_paths as train_paths
 
-def create_training_request_file(output_path: str = "training_request.json"):
+def create_training_request_file():
     """
     Create a training request JSON file for the text trainer.
     """
-    parser = argparse.ArgumentParser(description="Text Model Training Script")
+    parser = argparse.ArgumentParser(description="Create Training Request File")
     parser.add_argument(
         "--dataset-type", required=True, help="JSON string of dataset type config"
     )
@@ -18,6 +18,14 @@ def create_training_request_file(output_path: str = "training_request.json"):
     parser.add_argument("--max-steps", type=int, default=1000, help="Maximum training steps")
     parser.add_argument("--max-data-size", type=int, default=-1, help="Maximum data size to use")
     args = parser.parse_args()
+
+    # Parse dataset_type from JSON string to dict
+    try:
+        dataset_type_dict = json.loads(args.dataset_type)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing dataset_type JSON: {e}")
+        print(f"Received: {args.dataset_type}")
+        raise
 
     model_path = str(train_paths.get_text_base_model_path(args.model))
     dataset_path = train_paths.get_text_dataset_path(args.task_id)
@@ -32,7 +40,7 @@ def create_training_request_file(output_path: str = "training_request.json"):
             "dataset": dataset_path,
             "model_path": model_path,
             "model_name": args.model,
-            "dataset_type": args.dataset_type,
+            "dataset_type": dataset_type_dict,  # Use parsed dict instead of string
             "max_data_size": args.max_data_size,
             "max_length": 2048,
             "min_steps": args.min_steps,
@@ -40,9 +48,15 @@ def create_training_request_file(output_path: str = "training_request.json"):
         }
     }
     
+    print(f"Training request content:\n{json.dumps(training_request, indent=2)}")
+    
     # Write to file
     with open(output_path, "w") as file:
         json.dump(training_request, indent=2, fp=file)
     
     print(f"Training request file created at: {output_path}")
     return output_path
+
+
+if __name__ == "__main__":
+    create_training_request_file()

@@ -1,3 +1,4 @@
+import os
 from model_utility import get_model_architecture, get_model_num_params, get_use_liger, disable_flash_attention, get_data_size, get_gpu_count
 from copy import deepcopy
 from lrs_lookup import get_instruct_lr
@@ -183,6 +184,13 @@ def get_training_json(train_info: dict) -> dict:
     model_name = train_info["model_name"]
     model_path = train_info["model_path"]
     model_architecture = get_model_architecture(model_path)
+    print(f"Model path: {model_path}, architecture: {model_architecture}")
+    # print files in model_path
+    if os.path.exists(model_path) and os.path.isdir(model_path):
+        print(f"Files in model path {model_path}: {os.listdir(model_path)}")
+    else:
+        print(f"Model path {model_path} does not exist or is not a directory.")
+        
     param_nums = get_model_num_params(model_name, model_path)
     config = get_instruct_config(param_nums)
     run_config = {
